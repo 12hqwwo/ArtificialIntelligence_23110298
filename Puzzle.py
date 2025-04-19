@@ -1,12 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 from collections import deque
-import heapq
 import time
-import random
-import math
-import sys
-import funtion
+import function
+import find1
 
 class PuzzleApp:
     def __init__(self, root):
@@ -115,7 +112,7 @@ class PuzzleApp:
                     row.append(value)
                 state.append(row)
             self.initial_state = state
-            if not funtion.is_solvable(state):
+            if not function.is_solvable(state):
                 messagebox.showerror("Error", "Puzzle unsolvable!")
                 return
             self.state = [r[:] for r in state]
@@ -146,35 +143,35 @@ class PuzzleApp:
         start_time = time.time()
 
         if algo == "BFS":
-            solution = funtion.bfs_solve(start_state)
+            solution = find1.bfs_solve(start_state)
         elif algo == "UCS":
-            solution = funtion.ucs_solve(start_state)
+            solution = find1.ucs_solve(start_state)
         elif algo == "Greedy":
-            solution = funtion.greedy_solve(start_state)
+            solution = function.greedy_solve(start_state)
         elif algo == "A*":
-            solution = funtion.astar_solve(start_state)
+            solution = function.astar_solve(start_state)
         elif algo == "DFS":
-            solution = funtion.dfs_solve(start_state)
+            solution = find1.dfs_solve(start_state)
         elif algo == "IDS":
-            solution = funtion.ids_solve(start_state)
+            solution = find1.ids_solve(start_state)
         elif algo == "IDA*":
-            solution = funtion.ida_star_solve(start_state)
+            solution = find1.ida_star_solve(start_state)
         elif algo == "SimpleHC":
-            solution = funtion.simple_hill_climbing_solve(start_state)
+            solution = function.simple_hill_climbing_solve(start_state)
         elif algo == "SteepestHC":
-            solution = funtion.steepest_hill_climbing_solve(start_state)
+            solution = function.steepest_hill_climbing_solve(start_state)
         elif algo == "StochasticHC":
-            solution = funtion.stochastic_hill_climbing_solve(start_state)
+            solution = function.stochastic_hill_climbing_solve(start_state)
         elif algo == "SimAnneal":
-            solution = funtion.simulated_annealing_solve(start_state, max_iterations=30000, initial_temp=1e5, alpha=0.95)
+            solution = function.simulated_annealing_solve(start_state, max_iterations=30000, initial_temp=1e5, alpha=0.95)
         elif algo == "BeamSearch":
-            solution = funtion.beam_search_solve(start_state, beam_width=3)
+            solution = function.beam_search_solve(start_state, beam_width=3)
         elif algo == "AndOr":
-            solution = funtion.and_or_solve(start_state)
+            solution = function.and_or_solve(start_state)
         elif algo == "SensorlessBFS":
             # For simplicity, treat the initial state as a belief state with one state
             belief_state = [start_state]
-            solution = funtion.sensorless_bfs_solve(belief_state)
+            solution = function.sensorless_bfs_solve(belief_state)
         else:
             solution = None
 
@@ -187,7 +184,7 @@ class PuzzleApp:
             final_state = [row[:] for row in self.initial_state]
             for move in solution:
                 final_state = self.move_blank(final_state, move)
-            solved = (final_state == funtion.GOAL_STATE)
+            solved = (final_state == function.GOAL_STATE)
 
         print("Algorithm:", algo, "Solution:", solution, "Elapsed time:", elapsed)
         if solved:
@@ -209,8 +206,8 @@ class PuzzleApp:
         self.root.after(500, lambda: self.animate_solution(moves, solved))
 
     def move_blank(self, state, move):
-        blank_x, blank_y = funtion.find_blank(state)
-        dx, dy = funtion.MOVES[move]
+        blank_x, blank_y = function.find_blank(state)
+        dx, dy = function.MOVES[move]
         new_x, new_y = blank_x + dx, blank_y + dy
         new_state = [row[:] for row in state]
         new_state[blank_x][blank_y], new_state[new_x][new_y] = new_state[new_x][new_y], new_state[blank_x][blank_y]

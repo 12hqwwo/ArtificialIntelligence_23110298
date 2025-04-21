@@ -12,7 +12,7 @@ class PuzzleApp:
         # Đặt kích thước cố định (bạn có thể điều chỉnh)
         self.root.geometry("600x600")
         
-        # Cấu hình grid cho root: các frame sẽ không giãn nếu không cần
+        # Cấu hình grid cho root: 
         self.root.grid_rowconfigure(0, weight=0)  # input_frame
         self.root.grid_rowconfigure(1, weight=0)  # control_frame
         self.root.grid_rowconfigure(2, weight=0)  # puzzle_frame

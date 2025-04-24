@@ -68,7 +68,8 @@ class PuzzleApp:
             ("Simulated Annealing", "SimAnneal"),
             ("Beam Search", "BeamSearch"),
             ("And-Or Search", "AndOr"), 
-            ("Sensorless BFS", "SensorlessBFS")
+            ("Sensorless BFS", "SensorlessBFS"),
+            ("Backtracking Search", "Backtracking")
         ]
         
         self.algo_var = tk.StringVar()
@@ -172,6 +173,8 @@ class PuzzleApp:
             # For simplicity, treat the initial state as a belief state with one state
             belief_state = [start_state]
             solution = function.sensorless_bfs_solve(belief_state)
+        elif algo == "Backtracking":
+            solution = find1.backtracking_search_solve(start_state)
         else:
             solution = None
 

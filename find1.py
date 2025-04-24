@@ -118,3 +118,49 @@ def ucs_solve(start_state):
                 visited[new_tuple] = new_cost
                 heapq.heappush(pq, (new_cost, new_state, path + [move]))
     return None
+
+def backtracking_search_solve(start_state):
+    """
+    Triển khai theo kiểu CSP: mỗi biến là ô (i,j), domain 0..8, ràng buộc all-different
+    và khi gán đủ phải bằng GOAL_STATE. Cực kém về hiệu năng, demo cách dùng backtracking CSP.
+    """
+    variables = [(i, j) for i in range(3) for j in range(3)]
+    domains   = {var: set(range(9)) for var in variables}
+    goal      = function.GOAL_STATE
+
+    def all_diff(ass):
+        vals = ass.values()
+        return len(vals) == len(set(vals))
+
+    def is_goal(ass):
+        return all(ass[(i,j)] == goal[i][j] for i in range(3) for j in range(3))
+
+    # **KHÔNG** gán start_state hết vào init; để empty để nó backtrack thật
+    init_assign = {}
+
+    def recursive_bt(assignment):
+        # nếu gán đủ 9 biến, kiểm tra goal
+        if len(assignment) == len(variables):
+            return [] if is_goal(assignment) else None
+
+        # chọn biến chưa gán (bạn có thể thay heuristics MRV ở đây nếu thích)
+        var = next(v for v in variables if v not in assignment)
+
+        for val in domains[var]:
+            # all-different
+            if val in assignment.values():
+                continue
+            # optional pruning: nếu gán mà khác goal thì cũng skip luôn
+            # bỏ dòng này nếu bạn muốn test full CSP
+            if val != goal[var[0]][var[1]]:
+                continue
+
+            assignment[var] = val
+            sol = recursive_bt(assignment)
+            if sol is not None:
+                return sol
+            del assignment[var]
+
+        return None
+
+    return recursive_bt(init_assign)

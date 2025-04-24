@@ -70,6 +70,7 @@ def ids_solve(start_state):
             return result
         depth += 1
 
+
 def ida_star_solve(start_state):
     def search(state, g, threshold, path, visited):
         f = g + function.manhattan_distance(state)

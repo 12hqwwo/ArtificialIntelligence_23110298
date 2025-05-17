@@ -1,222 +1,380 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
-from collections import deque
+import sys
 import time
-import function
-import find1
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy, QApplication, QMainWindow, QMessageBox, QComboBox, QTableWidget, QTableWidgetItem
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtGui import QFontDatabase, QFont
+from PyQt6.QtCore import QTimer
+from algorithms import (
+    bfs_solve, dfs, ids, ucs,
+    greedy_best_first_search, ida_start, a_start,
+    shc, steepest_ahc, stochastic_hc, simulated_annealing, beam_search, solution_for_ga,
+    and_or_search,
+    get_solution, min_conflicts,
+    sensorless_solve_astar, solve_partial_observation_8puzzle
+)
+from sensorless import SensorlessApp
+from partial_observation import PartialObs
+from interface import ui_mainwindow
 
-class PuzzleApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("8-Puzzle Solver")
-        # Đặt kích thước cố định (bạn có thể điều chỉnh)
-        self.root.geometry("600x600")
-        
-        # Cấu hình grid cho root: 
-        self.root.grid_rowconfigure(0, weight=0)  # input_frame
-        self.root.grid_rowconfigure(1, weight=0)  # control_frame
-        self.root.grid_rowconfigure(2, weight=0)  # puzzle_frame
-        self.root.grid_columnconfigure(0, weight=1)
-        
-        self.initial_state = None
-        self.state = None
-        self.buttons = [[None]*3 for _ in range(3)]
-        self.create_ui()
+def manhattan_distance(state):
+    distance = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0:
+                goal_x, goal_y = divmod(state[i][j] - 1, 3)
+                distance += abs(goal_x - i) + abs(goal_y - j)
+    return distance
 
-    def create_ui(self):
-        self.root.configure(bg='#FFF0F5')
-        
-        # --- Input Frame ---
-        input_frame = tk.Frame(self.root, bg='#FFF0F5')
-        input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="n")
-        tk.Label(input_frame, text="Enter initial state (0 represents blank):",
-                 bg='#FFF0F5', font=('Comic Sans MS', 14)
-                ).grid(row=0, column=0, columnspan=3, pady=(0, 10))
-        
-        self.input_entries = [[None]*3 for _ in range(3)]
-        default_values = [['2', '6', '5'],
-                          ['8', '0', '7'],
-                          ['4', '3', '1']]
+class EightPuzzleApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        # 1. Load font SF Pro Display từ file
+        font_id = QFontDatabase.addApplicationFont("fonts/SF-Pro-Display-Regular.otf")
+        if font_id == -1:
+            print("Không thể load font SF Pro Display!")
+        else:
+            font_families = QFontDatabase.applicationFontFamilies(font_id)
+            if font_families:
+                sf_pro_font = QFont(font_families[0])
+                # 2. Đặt font cho toàn ứng dụng hoặc widget chính
+                self.setFont(sf_pro_font)
+            else:
+                print("Không tìm thấy họ font sau khi load.")
+
+
+        self.ui = ui_mainwindow()
+        self.ui.setupUi(self) 
+
+        # Set background app và font SF Pro Display
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #F9E6E4;
+                font-family: 'SF Pro Display';
+            }
+        """)
+
+        # In đậm "Đường đi:"
+        self.ui.label_9.setStyleSheet("font-weight: bold;")
+
+        # Đổi text và in đậm "Chọn thuật toán:" ➜ "Thuật toán:"
+        self.ui.label.setText("Thuật toán:")
+        self.ui.label.setStyleSheet("font-weight: bold;")
+
+        # In đậm nút Sensorless và Partial Observation
+        self.ui.sensorlessButton.setStyleSheet("font-weight: bold;")
+        self.ui.parObButton.setStyleSheet("font-weight: bold;")
+
+        self.ui.algorithmComboBox.setGeometry(QtCore.QRect(160, 20, 220, 31))
+        self.ui.label_20.setGeometry(QtCore.QRect(400, 20, 81, 31))
+        self.ui.timeLabel.setGeometry(QtCore.QRect(500, 20, 61, 31))
+
+
+        # Style cho label số (background pastel hồng, bo góc, in đậm)
+        label_style = """
+            QLabel {
+                background-color: #FFE5E7;
+                border: 2px solid #FFB0B5;
+                border-radius: 15px;
+                font-weight: bold;
+                font-size: 20px;
+                color: #333333;
+                qproperty-alignment: AlignCenter;
+            }
+        """
+        for i in range(1, 9):
+            label = getattr(self.ui, f"label_{i}", None)
+            if label:
+                label.setStyleSheet(label_style)
+        if hasattr(self.ui, "label_empty"):
+            self.ui.label_empty.setStyleSheet(label_style)
+        for i in range(10, 19):
+            label = getattr(self.ui, f"label_{i}", None)
+            if label:
+                label.setStyleSheet(label_style)
+
+        # Style cho các nút với màu pastel và bo góc
+        button_style = """
+            QPushButton {
+                background-color: #FFB0B5;
+                border: none;
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-weight: bold;
+                color: white;
+            }
+            QPushButton:hover {
+                background-color: #FFC6CA;
+            }
+            QPushButton:pressed {
+                background-color: #FFD3D6;
+            }
+        """
+        for btn in [self.ui.solveButton, self.ui.resetButton, self.ui.exitButton, self.ui.sensorlessButton, self.ui.parObButton]:
+            btn.setStyleSheet(button_style)
+
+        self.ui.algorithmComboBox.setStyleSheet("""
+            QComboBox {
+                padding-right: 20px;
+            }
+        """)
+
+        # Mở rộng kích thước cửa sổ để vừa bảng lịch sử
+        self.resize(1200, 782)
+
+        self.historyTable = QTableWidget(self.ui.centralwidget)
+        self.historyTable.setColumnCount(3)
+        self.historyTable.setHorizontalHeaderLabels(["Thuật toán", "Thời gian (s)", "Trạng thái"])
+        self.historyTable.setGeometry(700, 60, 480, 700)
+        self.historyTable.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.historyTable.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.historyTable.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.historyTable.setColumnWidth(0, 180)  # Thuật toán
+        self.historyTable.setColumnWidth(1, 100)  # Thời gian
+        self.historyTable.setColumnWidth(2, 120)  # Trạng thái
+        self.historyTable.setStyleSheet("""
+            QHeaderView::section {
+                background-color: #FFC6CA;
+                font-weight: bold;
+            }
+            QTableWidget {
+                background-color: #FFE5E7;
+                border: 1px solid #FFB0B5;
+            }
+        """)
+
+        # Điều chỉnh label h(n)/f(n) và giá trị hiển thị
+        self.ui.label_21.setGeometry(QtCore.QRect(470, 20, 40, 31))
+        self.ui.hnLabel.setGeometry(QtCore.QRect(510, 20, 80, 31))
+
+        # Tạo widget chứa 3 nút
+        self.buttonColumnWidget = QWidget(self.ui.centralwidget)
+        self.buttonColumnWidget.setGeometry(30, 80, 130, 120)  # chỉnh vị trí, kích thước phù hợp
+
+        # Tạo layout dọc cho widget chứa nút
+        vbox = QVBoxLayout(self.buttonColumnWidget)
+        vbox.setSpacing(10)  # khoảng cách giữa các nút
+
+        # Thêm nút vào layout
+        vbox.addWidget(self.ui.solveButton)
+        vbox.addWidget(self.ui.resetButton)
+        vbox.addWidget(self.ui.exitButton)
+
+        # Đặt kích thước cố định hoặc size policy cho từng nút để chúng đều nhau
+        for btn in [self.ui.solveButton, self.ui.resetButton, self.ui.exitButton]:
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+            btn.setMinimumHeight(30)
+            btn.setMinimumWidth(120)
+
+        # Giảm chiều cao bảng Đường đi, hạ sao cho cạnh dưới bằng cạnh dưới historyTable
+        new_listwidget_height = 480  # cùng chiều cao với historyTable
+
+        # Giảm chiều cao bảng Đường đi xuống 20 đơn vị
+        listwidget_geo = self.ui.listWidget.geometry()
+        new_height = listwidget_geo.height() - 20
+        self.ui.listWidget.setGeometry(
+            listwidget_geo.x(),
+            listwidget_geo.y(),
+            listwidget_geo.width(),
+            new_height
+        )
+
+        # Đảm bảo listWidget có thanh cuộn dọc (QListWidget mặc định có thanh cuộn)
+        self.ui.listWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        # Hạ cụm Mục tiêu xuống dưới bảng Đường đi (listWidget)
+        label_target_geo = self.ui.label_19.geometry()
+        new_label_target_y = self.ui.listWidget.geometry().y() + new_listwidget_height + 10
+        self.ui.label_19.setGeometry(
+            label_target_geo.x(),
+            new_label_target_y,
+            label_target_geo.width(),
+            label_target_geo.height()
+        )
+
+        # Tính tọa độ Y mới cho 2 nút Sensorless và Partial Observation
+        listwidget_geo = self.ui.listWidget.geometry()
+        new_y = listwidget_geo.y() + listwidget_geo.height() + 10
+
+        sensorless_geo = self.ui.sensorlessButton.geometry()
+        self.ui.sensorlessButton.setGeometry(
+            sensorless_geo.x(),
+            new_y,
+            sensorless_geo.width(),
+            sensorless_geo.height()
+        )
+
+        partialob_geo = self.ui.parObButton.geometry()
+        self.ui.parObButton.setGeometry(
+            partialob_geo.x(),
+            new_y,
+            partialob_geo.width(),
+            partialob_geo.height()
+        )
+
+        self.initial_state = [
+            [2, 6, 5],
+            [8, 0, 7],
+            [4, 3, 1]
+        ]    
+
+        self.grid_labels = {}
         for i in range(3):
             for j in range(3):
-                e = tk.Entry(input_frame, width=4, font=('Comic Sans MS', 16), justify='center')
-                e.grid(row=i+1, column=j, padx=5, pady=5)
-                e.insert(0, default_values[i][j])
-                self.input_entries[i][j] = e
-        
-        update_button = tk.Button(input_frame, text="Update State", font=('Comic Sans MS', 14),
-                                  bg='#FFB6C1', command=self.update_initial_state)
-        update_button.grid(row=4, column=0, columnspan=3, pady=10)
-        
-        # --- Control Frame ---
-        control_frame = tk.Frame(self.root, bg='#FFF0F5')
-        control_frame.grid(row=1, column=0, padx=10, pady=10, sticky="n")
-        tk.Label(control_frame, text="Select algorithm:", bg='#FFF0F5',
-                 font=('Comic Sans MS', 14)).grid(row=0, column=0, padx=5, pady=5)
-        
-        self.algorithms = [
-            ("BFS", "BFS"),
-            ("Uniform Cost Search", "UCS"),
-            ("Greedy Search", "Greedy"),
-            ("A* Search", "A*"),
-            ("DFS", "DFS"),
-            ("IDS", "IDS"),
-            ("IDA* Search", "IDA*"),
-            ("Simple Hill Climbing", "SimpleHC"),
-            ("Steepest Hill Climbing", "SteepestHC"),
-            ("Stochastic Hill Climbing", "StochasticHC"),
-            ("Simulated Annealing", "SimAnneal"),
-            ("Beam Search", "BeamSearch"),
-            ("And-Or Search", "AndOr"), 
-            ("Sensorless BFS", "SensorlessBFS"),
-            ("Backtracking Search", "Backtracking")
-        ]
-        
-        self.algo_var = tk.StringVar()
-        self.algo_combo = ttk.Combobox(control_frame, textvariable=self.algo_var, 
-                                       state="readonly", font=('Comic Sans MS', 12))
-        self.algo_combo['values'] = [item[0] for item in self.algorithms]
-        self.algo_combo.current(0)
-        self.algo_combo.grid(row=0, column=1, padx=5, pady=5)
-        
-        solve_button = tk.Button(control_frame, text="Solve Puzzle", font=('Comic Sans MS', 14),
-                                 bg='#AED581', command=self.solve_puzzle)
-        solve_button.grid(row=1, column=0, columnspan=2, pady=10)
-        
-        # --- Puzzle Frame ---
-        self.puzzle_frame = tk.Frame(self.root, bg='#FFF0F5')
-        self.puzzle_frame.grid(row=2, column=0, columnspan=3, pady=10)
+                # Tên label dùng định dạng theo vị trí, ví dụ "label_2" với giá trị 2, "label_empty" với giá trị 0
+                # Nhưng dễ nhất là bạn lưu label theo tọa độ i,j của ô:
+                label_name = f"label_{i}_{j}"  # Bạn cần đổi tên label trong UI theo chuẩn này, hoặc map lại
+                # Nếu UI chưa có label với tên đó, bạn phải map theo tên hiện tại:
+                # Ví dụ label tên theo giá trị, thì map ngược:
+                # label_value = self.initial_state[i][j]
+                # label_name = f"label_{label_value}" if label_value != 0 else "label_empty"
+                # Nhưng với update_grid, bạn muốn cập nhật text trên label theo vị trí i,j, nên tốt nhất đặt label theo tên i_j
+                label = getattr(self.ui, label_name, None)
+                if label:
+                    self.grid_labels[(i, j)] = label
+       
+
+        # Khởi tạo positions mapping các label theo giá trị:
+        self.positions = {}
         for i in range(3):
             for j in range(3):
-                b = tk.Label(
-                    self.puzzle_frame,
-                    text="",
-                    width=3,
-                    height=1,
-                    font=('Comic Sans MS', 20),
-                    relief="solid",
-                    bg="white",
-                    anchor="center"
-                )
-                b.grid(row=i, column=j, padx=2, pady=2)
-                self.buttons[i][j] = b
+                value = self.initial_state[i][j]
+                label_name = f"label_{value}" if value != 0 else "label_empty"
+                label = getattr(self.ui, label_name)
+                self.positions[value] = label.pos()
 
-        self.update_initial_state()
+        # Cập nhật giao diện với trạng thái mới ngay sau khi khởi tạo
+        self.update_grid(self.initial_state)
 
-    def update_initial_state(self):
-        try:
-            state = []
-            for i in range(3):
-                row = []
-                for j in range(3):
-                    value = int(self.input_entries[i][j].get())
-                    row.append(value)
-                state.append(row)
-            self.initial_state = state
-            if not function.is_solvable(state):
-                messagebox.showerror("Error", "Puzzle unsolvable!")
-                return
-            self.state = [r[:] for r in state]
-            self.update_puzzle_display()
-        except ValueError:
-            messagebox.showerror("Error", "Please enter valid integers!")
+        
+        self.ui.solveButton.clicked.connect(self.solve_puzzle)
+        self.ui.resetButton.clicked.connect(self.reset_puzzle)
+        self.ui.exitButton.clicked.connect(self.close)
+        self.ui.sensorlessButton.clicked.connect(self.open_sensorless_window)
+        self.ui.parObButton.clicked.connect(self.open_partob_window)
+        self.sensorless_window = None
+        self.partial_obs_window = None 
 
-    def update_puzzle_display(self):
+    def open_partob_window(self):
+        if self.partial_obs_window is None:
+            self.partial_obs_window = PartialObs()
+        self.partial_obs_window.show()
+
+    def open_sensorless_window(self):
+        if self.sensorless_window is None:
+            self.sensorless_window = SensorlessApp()
+        self.sensorless_window.show()
+
+    def update_grid(self, state):
         for i in range(3):
             for j in range(3):
-                val = self.state[i][j]
-                display_val = "" if val == 0 else str(val)
-                self.buttons[i][j].config(text=display_val, bg="white")
+                value = state[i][j]
+                label_name = f"label_{value}" if value != 0 else "label_empty"
+                if hasattr(self.ui, label_name):
+                    label = getattr(self.ui, label_name)
+                    new_x = self.positions[0].x() + j * 135
+                    new_y = self.positions[0].y() + i * 125 
+                    label.move(new_x, new_y)
 
     def solve_puzzle(self):
-        if self.initial_state is None:
-            messagebox.showerror("Error", "Initial state not updated!")
-            return
+        QMessageBox.information(self, "Chú ý", "Đang tính toán tiến trình giải.")
+        self.selected_algorithm = self.ui.algorithmComboBox.currentText()
 
-        selected_text = self.algo_var.get()
-        algo = None
-        for display_name, mode_name in self.algorithms:
-            if display_name == selected_text:
-                algo = mode_name
-                break
-
-        start_state = [row[:] for row in self.initial_state]
-        start_time = time.time()
-
-        if algo == "BFS":
-            solution = find1.bfs_solve(start_state)
-        elif algo == "UCS":
-            solution = find1.ucs_solve(start_state)
-        elif algo == "Greedy":
-            solution = function.greedy_solve(start_state)
-        elif algo == "A*":
-            solution = function.astar_solve(start_state)
-        elif algo == "DFS":
-            solution = find1.dfs_solve(start_state)
-        elif algo == "IDS":
-            solution = find1.ids_solve(start_state)
-        elif algo == "IDA*":
-            solution = find1.ida_star_solve(start_state)
-        elif algo == "SimpleHC":
-            solution = function.simple_hill_climbing_solve(start_state)
-        elif algo == "SteepestHC":
-            solution = function.steepest_hill_climbing_solve(start_state)
-        elif algo == "StochasticHC":
-            solution = function.stochastic_hill_climbing_solve(start_state)
-        elif algo == "SimAnneal":
-            solution = function.simulated_annealing_solve(start_state, max_iterations=30000, initial_temp=1e5, alpha=0.95)
-        elif algo == "BeamSearch":
-            solution = function.beam_search_solve(start_state, beam_width=3)
-        elif algo == "AndOr":
-            solution = function.and_or_solve(start_state)
-        elif algo == "SensorlessBFS":
-            # For simplicity, treat the initial state as a belief state with one state
-            belief_state = [start_state]
-            solution = function.sensorless_bfs_solve(belief_state)
-        elif algo == "Backtracking":
-            solution = find1.backtracking_search_solve(start_state)
+        if self.selected_algorithm == "UCS":
+            solution = ucs(self.initial_state)
+        elif self.selected_algorithm == "BFS":
+            solution = bfs_solve(self.initial_state)
+        elif self.selected_algorithm == "IDS":
+            solution = ids(self.initial_state)
+        elif self.selected_algorithm == "DFS":
+            solution = dfs(self.initial_state)
+        elif self.selected_algorithm == "Greedy Search":
+            solution = greedy_best_first_search(self.initial_state)
+        elif self.selected_algorithm == "A* Search":
+            solution = a_start(self.initial_state)
+        elif self.selected_algorithm == "IDA* Search":
+            solution = ida_start(self.initial_state)
+        elif self.selected_algorithm == "Simple HC":
+            solution = shc(self.initial_state)
+        elif self.selected_algorithm == "Steepest Ascent HC":
+            solution = steepest_ahc(self.initial_state)
+        elif self.selected_algorithm == "Stochastic HC":
+            solution = stochastic_hc(self.initial_state)
+        elif self.selected_algorithm == "Simulated Annealing":
+            solution = simulated_annealing(self.initial_state)
+        elif self.selected_algorithm == "Beam Search":
+            solution = beam_search(self.initial_state)
+        elif self.selected_algorithm == "Genetic Algorithm":
+            solution = solution_for_ga(self.initial_state)
+        elif self.selected_algorithm == "AND-OR Graph":
+            solution = and_or_search(self.initial_state)
+        elif self.selected_algorithm == "Backtracking":
+            solution = get_solution(self.initial_state, "Backtracking")
+        elif self.selected_algorithm == "Backtracking with forward checking":
+            solution = get_solution(self.initial_state, "Backtracking with forward checking")
+        elif self.selected_algorithm == "Min-Conflicts":
+            solution = min_conflicts(self.initial_state)
         else:
             solution = None
 
-        elapsed = time.time() - start_time
-
-        if solution is None:
-            solution = []
-            solved = False
+        self.solution = solution
+        if self.solution:
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.update_solution)
+            self.solution_index = 0
+            self.timer.start(300)
+            self.start_time = time.time()
         else:
-            final_state = [row[:] for row in self.initial_state]
-            for move in solution:
-                final_state = self.move_blank(final_state, move)
-            solved = (final_state == function.GOAL_STATE)
+            QMessageBox.warning(self, "Thất bại", "Không tìm thấy lời giải!")
+            row_pos = self.historyTable.rowCount()
+            self.historyTable.insertRow(row_pos)
+            self.historyTable.setItem(row_pos, 0, QTableWidgetItem(self.selected_algorithm))
+            self.historyTable.setItem(row_pos, 1, QTableWidgetItem("-"))
+            self.historyTable.setItem(row_pos, 2, QTableWidgetItem("Không giải được"))
 
-        print("Algorithm:", algo, "Solution:", solution, "Elapsed time:", elapsed)
-        if solved:
-            messagebox.showinfo("Result", f"Solution found in {len(solution)} moves.\nTime: {elapsed:.2f} seconds.\nMoves: {solution}")
+    def update_solution(self):
+        if self.solution_index < len(self.solution):
+            self.initial_state = self.solution[self.solution_index]
+            self.update_grid(self.initial_state)
+            self.ui.listWidget.addItem(str(self.initial_state))
+            h_n = manhattan_distance(self.initial_state)
+            g_n = self.solution_index
+            f_n = h_n + g_n
+            if self.selected_algorithm == "Greedy Search":
+                self.ui.label_21.setText("h(n) = ")
+                self.ui.hnLabel.setText(str(h_n))
+            elif self.selected_algorithm in ["A* Search", "IDA* Search"]:
+                self.ui.label_21.setText("f(n) = ")
+                self.ui.hnLabel.setText(str(f_n))
+            self.solution_index += 1
         else:
-            messagebox.showinfo("Result", f"No complete solution found after {len(solution)} moves.\nTime: {elapsed:.2f} seconds.")
-        self.state = [row[:] for row in self.initial_state]
-        self.update_puzzle_display()
-        self.root.after(1000, lambda: self.animate_solution(solution, solved))
+            self.timer.stop()
+            self.end_time = time.time()
+            self.elapsed_time = self.end_time - self.start_time
+            self.ui.timeLabel.setText(f"{round(self.elapsed_time, 4)}s")
+            QMessageBox.information(self, "Thành công", f"Thời gian thực hiện: {self.elapsed_time}s")
+            row_pos = self.historyTable.rowCount()
+            self.historyTable.insertRow(row_pos)
+            self.historyTable.setItem(row_pos, 0, QTableWidgetItem(self.selected_algorithm))
+            self.historyTable.setItem(row_pos, 1, QTableWidgetItem(f"{round(self.elapsed_time, 4)}"))
+            self.historyTable.setItem(row_pos, 2, QTableWidgetItem("Thành công"))   
 
-    def animate_solution(self, moves, solved):
-        if not moves:
-            if not solved:
-                messagebox.showinfo("Result", "No complete solution was reached.")
-            return
-        move = moves.pop(0)
-        self.state = self.move_blank(self.state, move)
-        self.update_puzzle_display()
-        self.root.after(500, lambda: self.animate_solution(moves, solved))
-
-    def move_blank(self, state, move):
-        blank_x, blank_y = function.find_blank(state)
-        dx, dy = function.MOVES[move]
-        new_x, new_y = blank_x + dx, blank_y + dy
-        new_state = [row[:] for row in state]
-        new_state[blank_x][blank_y], new_state[new_x][new_y] = new_state[new_x][new_y], new_state[blank_x][blank_y]
-        return new_state
-
+    def reset_puzzle(self):  
+        self.initial_state = [
+            [2, 6, 5],
+            [8, 0, 7],
+            [4, 3, 1]
+        ]  
+        self.update_grid(self.initial_state)
+        self.ui.listWidget.clear()
+        self.ui.timeLabel.clear()
+        self.ui.hnLabel.clear()
+    
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = PuzzleApp(root)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    sf_font = QtGui.QFont("SF Pro Display")
+    sf_font.setPointSize(10)
+    app.setFont(sf_font)
+
+    window = EightPuzzleApp()
+    window.show()
+    sys.exit(app.exec())

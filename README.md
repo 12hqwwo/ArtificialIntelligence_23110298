@@ -84,6 +84,7 @@ Thuật toán sẽ bắt đầu từ trạng thái bắt đầu và lần lượ
     * *Độ phức tạp không gian*: O(d).
 
 * Minh họa cho các thuật toán:
+  
 `BFS`
 ![BFS](https://github.com/user-attachments/assets/b59f223f-c96a-4c6b-950e-2a4bbf7b7e47)
 
@@ -94,6 +95,7 @@ Thuật toán sẽ bắt đầu từ trạng thái bắt đầu và lần lượ
 ![UCS](https://github.com/user-attachments/assets/24251058-7328-4f8c-abd4-9e19927dda90)
 
 `IDS`
+
 ![IMG_3691](https://github.com/user-attachments/assets/1b046e26-2eab-478f-8521-2feaec787403)
 
 #### **So sánh giữa các thuật toán:**

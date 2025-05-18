@@ -57,6 +57,7 @@ Kết quả thu được sẽ giúp làm rõ ưu – nhược điểm của từ
 Trò chơi 8 ô thực chất là một ma trận 3x3 với các số từ 1-8 (số '0' được nhập từ bàn phím được hiểu là ô trắng), tập hành động có thể được thực thi và hợp lệ: Lên, xuống, trái, phải trong phạm vi 1 ô - và tất cả các hành động đều có cùng mức chi phí (bằng 1 như chương trình đã định).
 
 * Trạng thái đích được mặc định:
+  
 ![Trạng thái đích](https://github.com/user-attachments/assets/68f864ae-c3f5-4e02-a008-4a984500384d)
 
 Đối với bài toán 8 ô, lời giải sẽ được định nghĩa là một chuỗi các trạng thái nối tiếp nhau, bắt đầu từ trạng thái bắt đầu và kết thúc tại trạng thái đích. Mỗi trạng thái thể hiện một cấu hình cụ thể của bảng 3x3 và được lưu trữ dưới dạng danh sách lồng danh sách, giúp dễ dàng quan sát và kiểm tra trong quá trình tìm kiếm.
@@ -83,7 +84,14 @@ Thuật toán sẽ bắt đầu từ trạng thái bắt đầu và lần lượ
     * *Độ phức tạp không gian*: O(d).
 
 * Minh họa cho các thuật toán:
+`BFS`
+![BFS](https://github.com/user-attachments/assets/b59f223f-c96a-4c6b-950e-2a4bbf7b7e47)
 
+`DFS`
+![DFS](https://github.com/user-attachments/assets/06876c70-2a74-4861-a41d-302ce991ac45)
+
+`UCS`
+![UCS](https://github.com/user-attachments/assets/24251058-7328-4f8c-abd4-9e19927dda90)
 
 #### **So sánh giữa các thuật toán:**
 
@@ -121,6 +129,11 @@ Trong môi trường có thông tin, quá trình tìm kiếm được hỗ trợ
     * *Độ phức tạp không gian*: O(d).
 
 * Minh họa cho các thuật toán:
+`A*`
+![A_](https://github.com/user-attachments/assets/0903f662-a7bc-402c-94b2-8633378073e5)
+
+`IDA*`
+![IDA_](https://github.com/user-attachments/assets/f7dafb50-e759-4316-bc1f-fa00fcae43ea)
 
 #### **So sánh giữa các thuật toán:**
 | Thuật toán | Chiến lược duyệt               | Ưu điểm                              | Nhược điểm                                | Độ phức tạp thời gian | Độ phức tạp không gian |
@@ -146,13 +159,21 @@ Trong nhóm thuật toán tìm kiếm có ràng buộc, mục tiêu chính là t
 * **Backtracking:** Phương pháp Backtracking là một chiến lược tìm kiếm theo chiều sâu, trong đó thuật toán sẽ quay lui mỗi khi gặp trạng thái không hợp lệ hoặc không còn khả năng mở rộng. Một đặc điểm quan trọng của Backtracking là việc áp dụng các điều kiện ràng buộc để loại bỏ sớm những nhánh không khả thi, chẳng hạn như không cho phép lặp lại các trạng thái đã duyệt. Điều này giúp giảm thiểu không gian tìm kiếm đáng kể.
     * *Độ phức tạp thời gian*: Trong trường hợp xấu nhất là O(b^d), với b là số hành động hợp lệ từ một trạng thái và d là độ sâu tối đa.
     * *Độ phức tạp không gian*: O(d).
-
+ 
+* **Backtracking with Forward Checking:** Là một cải tiến của phương pháp Backtracking truyền thống, thường được áp dụng trong bài toán ràng buộc (Constraint Satisfaction Problems - CSP). Thuật toán này không chỉ kiểm tra ràng buộc tại thời điểm gán biến, mà còn dự đoán trước xem việc gán đó có khiến cho các biến chưa gán còn lại bị ràng buộc đến mức không còn giá trị hợp lệ nào để chọn hay không. Nếu có, thuật toán sẽ quay lui ngay lập tức, nhờ đó tiết kiệm thời gian tìm kiếm.
+  
 * Minh họa cho thuật toán:
+`Backtracking`
+![Backtracking](https://github.com/user-attachments/assets/2d72723e-1054-4f2d-9e27-46488f632c32)
+
+`Backtracking with Forward Checking`
+![Backtracking with forward check](https://github.com/user-attachments/assets/1067f0ca-273a-40f1-af76-fbd324056002)
 
 #### **Tóm tắt thuật toán:**
 | Thuật toán       | Chiến lược duyệt          | Ưu điểm                            | Nhược điểm                                                                 | Độ phức tạp thời gian | Độ phức tạp không gian |
 | ---------------- | ------------------------- | ---------------------------------- | -------------------------------------------------------------------------- | --------------------- | ---------------------- |
 | **Backtracking** | DFS có kiểm tra ràng buộc | Bộ nhớ thấp, loại bỏ nhánh sai sớm | Không đảm bảo tìm lời giải ngắn nhất, dễ lặp nếu không kiểm tra trạng thái | O(b^d)                | O(d)                   |
+| **Backtracking + Forward Checking** | DFS + Kiểm tra ràng buộc và miền giá trị | Hiệu quả hơn Backtracking thuần, tránh mở rộng nhánh sai rõ ràng | Tốn thêm tài nguyên để theo dõi và cập nhật miền giá trị | O(b^d) *(nhưng giảm nhiều trên thực tế)* | O(d + n·m) *(n biến, m miền)* |
 
 #### **Nhận xét:**
 
@@ -172,6 +193,10 @@ Trong môi trường như vậy, một nút AND yêu cầu tất cả các trạ
 
   * *Độ phức tạp thời gian*: Phụ thuộc vào cấu trúc cây AND/OR, trong trường hợp xấu nhất vẫn là O(b^d) nhưng thường nhỏ hơn do loại trừ được nhiều nhánh từ sớm.
   * *Độ phức tạp không gian*: O(d).
+ 
+* Minh họa cho thuật toán:
+  ![And-OR](https://github.com/user-attachments/assets/1ccf2712-0b04-4f50-b15f-0b69b238e3a6)
+
 
 #### **Tóm tắt thuật toán:**
 
@@ -216,6 +241,10 @@ Khác với nhóm không có thông tin, tìm kiếm cục bộ sử dụng *heu
 * **Genetic Algorithm**: Dựa trên tiến hóa sinh học, thuật toán khởi tạo một tập hợp các lời giải (quần thể), áp dụng *các phép crossover* và *mutation* để tạo ra lời giải mới. Sau mỗi thế hệ, những lời giải tốt nhất được chọn lọc để tiếp tục quá trình tiến hóa. Phù hợp với các bài toán tối ưu phức tạp.
   * *Độ phức tạp thời gian:* O(p × g × c)
   * *Độ phức tạp không gian:* O(p)
+ 
+* Minh họa cho các thuật toán:
+`Beam Search`
+![Beam Search](https://github.com/user-attachments/assets/9638767b-2f47-4a67-8aa4-85de14ea93bd)
 
 #### **So sánh giữa các thuật toán tìm kiếm cục bộ:**
 | Thuật toán                        | Chiến lược chính                                | Ưu điểm                              | Nhược điểm                                      | Độ phức tạp thời gian       | Độ phức tạp không gian |

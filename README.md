@@ -19,8 +19,8 @@
     - [Nhóm thuật toán tìm kiếm trong môi trường không xác định](#nhóm-thuật-toán-tìm-kiếm-trong-môi-trường-không-xác-định)
     - [Nhóm thuật toán tìm kiếm cục bộ](#nhóm-thuật-toán-tìm-kiếm-cục-bộ)
     - [Nhóm thuật toán tìm kiếm học củng cố](#thuật-toán-tìm-kiếm-học-củng-cố)
-- [So sánh độ hiệu quả các thuật toán]()
-- [Kết luận]()
+- [Phân tích kết quả](#phân-tích-kêt-quả)
+- [Kết luận](#kết-luận)
 
 
 
@@ -348,4 +348,30 @@ Trong trò chơi 8 ô, Q-learning có thể áp dụng bằng cách ánh xạ m�
 Q-learning là một thuật toán học mạnh mẽ, đặc biệt phù hợp với các môi trường mà trạng thái không được biết trước hoàn toàn hoặc có yếu tố ngẫu nhiên. Tuy nhiên, đối với trò chơi như 8 ô, không gian trạng thái rất lớn (≈ 9! = 362,880 trạng thái có thể), nên việc lưu trữ bảng Q trở nên tốn kém bộ nhớ. Các cải tiến như *Deep Q-Learning* dùng mạng nơron thay cho bảng Q truyền thống có thể giúp mở rộng khả năng áp dụng cho không gian liên tục hoặc cực lớn. Dù vậy, về mặt học thuật, Q-learning vẫn là một ví dụ điển hình minh họa khả năng học hành vi tối ưu qua trải nghiệm thay vì lập trình trước.
 
 ---
+## **Phân tích kết quả**
 
+Với cùng một trạng thái đầu mà hầu như tất cả thuật toán đều có thể thực thi, ta có được kết quả như sau:
+![Screenshot 2025-05-18 145218](https://github.com/user-attachments/assets/585f79c7-65cc-4b47-a094-1ba5953f8f32)
+
+* **Kết quả cho thấy:**
+
+    * Các thuật toán có hiệu suất cao nhất là A* (7.8308s), IDA* (7.8311s) và BFS (7.5095s). Đây là các thuật toán đảm bảo tìm lời giải ngắn nhất, trong đó A* và IDA* sử dụng heuristic để định hướng tìm kiếm, còn BFS duyệt toàn bộ theo từng mức nên không bỏ sót lời giải tối ưu.
+    
+    * Greedy Best-First Search (25.3964s) và AND-OR Search (31.3123s) là hai thuật toán có thời gian giải lâu nhất. Nguyên nhân là:
+        * Greedy chỉ dùng heuristic (h(n)) mà bỏ qua chi phí thực, dễ lạc hướng.
+        * AND-OR phải xử lý nhiều nhánh lựa chọn, gây bùng nổ trạng thái trong môi trường không xác định.
+    
+    * Các thuật toán tìm kiếm truyền thống như DFS, UCS, IDS có thời gian trung bình, dao động từ 8–10s. Trong đó:
+        * DFS có thể rơi vào nhánh sai và cần thời gian quay lui.
+        * UCS mở rộng theo chi phí nên duyệt rộng hơn DFS, nhưng chậm hơn BFS nếu tất cả chi phí là đồng đều.
+        
+    * Backtracking (15.9457s) mất nhiều thời gian do có thể lặp lại trạng thái và không có hướng dẫn heuristic. Tuy nhiên, khi kết hợp với Forward Checking (9.6791s), thời gian được cải thiện đáng kể nhờ loại trừ nhánh sai từ sớm.
+    
+    * Beam Search (15.6499s) hoạt động hiệu quả hơn một số thuật toán không định hướng do chỉ giữ lại k trạng thái tốt nhất, nhưng vẫn có nguy cơ bỏ lỡ lời giải tối ưu.
+   
+   Nhìn chung, các thuật toán định hướng tốt bằng heuristic và có cơ chế kiểm soát mở rộng như A* và IDA* là lựa chọn tối ưu nhất cho trò chơi 8 ô. Trong khi đó, các thuật toán thiếu chiến lược hoặc xử lý nhiều nhánh (như Greedy hoặc AND-OR) có thể mất thời gian đáng kể dù logic đúng. 
+---
+## **Kết luận**
+Việc triển khai và thử nghiệm nhiều nhóm thuật toán tìm kiếm trên trò chơi 8 ô đã cung cấp cái nhìn trực quan và sâu sắc về hiệu quả của từng chiến lược trong các điều kiện thông tin khác nhau. Mỗi thuật toán mang những ưu và nhược điểm riêng, và phát huy hiệu quả trong từng hoàn cảnh cụ thể – từ các thuật toán không dùng heuristic, đến những phương pháp cục bộ, có ràng buộc hoặc hoạt động trong môi trường không xác định.
+
+Thông qua quá trình thực nghiệm, bài toán không chỉ giúp củng cố kiến thức về tìm kiếm trong trí tuệ nhân tạo, mà còn rèn luyện khả năng phân tích, so sánh và lựa chọn giải pháp phù hợp. Đây cũng là cơ sở quan trọng để ứng dụng vào các lĩnh vực thực tế, lập kế hoạch hành động và các hệ thống thông minh trong tương lai.

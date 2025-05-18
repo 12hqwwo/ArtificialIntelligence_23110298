@@ -93,6 +93,9 @@ Thuật toán sẽ bắt đầu từ trạng thái bắt đầu và lần lượ
 `UCS`
 ![UCS](https://github.com/user-attachments/assets/24251058-7328-4f8c-abd4-9e19927dda90)
 
+`IDS`
+![IMG_3691](https://github.com/user-attachments/assets/1b046e26-2eab-478f-8521-2feaec787403)
+
 #### **So sánh giữa các thuật toán:**
 
 | Thuật toán | Chiến lược duyệt             | Ưu điểm                                             | Nhược điểm                                      | Độ phức tạp thời gian | Độ phức tạp không gian |
@@ -117,29 +120,36 @@ Trong môi trường có thông tin, quá trình tìm kiếm được hỗ trợ
 
 #### **Các thuật toán được sử dụng**:
 * **A**: A* là thuật toán tìm kiếm sử dụng thông tin heuristic để dẫn dắt quá trình mở rộng trạng thái. Nó tính toán tổng chi phí f(n) = g(n) + h(n), trong đó g(n) là chi phí từ trạng thái ban đầu đến hiện tại, và h(n) là ước lượng chi phí còn lại đến mục tiêu (heuristic). A* đảm bảo tìm được lời giải tối ưu nếu h(n) là hàm heuristic chấp nhận được (không đánh giá thấp chi phí thực). Ưu điểm của thuật toán là tìm được lời giải tối ưu, ít duyệt trạng thái dư thừa nếu heuristic tốt.
-
     * *Độ phức tạp thời gian*: O(b^d) trong trường hợp xấu.
-
     * *Độ phức tạp không gian*: O(b^d).
 
 * **IDA**: IDA* kết hợp giữa A* và DFS lặp sâu. Thay vì dùng hàng đợi ưu tiên như A*, IDA* sử dụng tìm kiếm theo chiều sâu nhưng có giới hạn f(n) (chi phí tổng hợp). Giới hạn này sẽ được tăng dần sau mỗi vòng lặp. IDA* giữ được tính tối ưu của A* nhưng tiết kiệm bộ nhớ như DFS. Ưu điểm của thuật toán là tối ưu, tiết kiệm bộ nhớ, phù hợp với không gian tìm kiếm lớn.
-
     * *Độ phức tạp thời gian*: O(b^d) (do lặp lại).
-
     * *Độ phức tạp không gian*: O(d).
 
+* **Greedy Search:** Đây là thuật toán tìm kiếm sử dụng thông tin heuristic để ưu tiên mở rộng các trạng thái có giá trị h(n) thấp nhất, tức là gần mục tiêu nhất theo ước lượng. Không giống như A*, thuật toán này bỏ qua chi phí đã đi (g(n)) và chỉ quan tâm đến ước lượng còn lại. Do đó, Greedy có thể rất nhanh nếu heuristic tốt, nhưng không đảm bảo tìm ra lời giải tối ưu.
+  * *Độ phức tạp thời gian:* O(b^d), tương tự A*, nhưng thường nhanh hơn do ít xét g(n).
+  * *Độ phức tạp không gian:* O(b^d), do vẫn cần lưu các nút đang mở.
+
 * Minh họa cho các thuật toán:
+  
 `A*`
 ![A_](https://github.com/user-attachments/assets/0903f662-a7bc-402c-94b2-8633378073e5)
 
 `IDA*`
 ![IDA_](https://github.com/user-attachments/assets/f7dafb50-e759-4316-bc1f-fa00fcae43ea)
 
+`Greedy Search`
+![IMG_3687](https://github.com/user-attachments/assets/4d49495f-d862-4c4b-bea5-70419c039dc1)
+
+
 #### **So sánh giữa các thuật toán:**
 | Thuật toán | Chiến lược duyệt               | Ưu điểm                              | Nhược điểm                                | Độ phức tạp thời gian | Độ phức tạp không gian |
 | ---------- | ------------------------------ | ------------------------------------ | ----------------------------------------- | --------------------- | ---------------------- |
-| A\*        | Theo f(n) = g(n) + h(n)        | Tối ưu, thông minh nếu heuristic tốt | Tốn bộ nhớ nhiều                          | O(b^d)                | O(b^d)                 |
-| IDA\*      | DFS với giới hạn f(n) tăng dần | Tối ưu, tiết kiệm bộ nhớ             | Phải lặp lại, hiệu quả phụ thuộc vào h(n) | O(b^d)                | O(d)                   |
+| **A\***    | Theo f(n) = g(n) + h(n)        | Tối ưu, thông minh nếu heuristic tốt | Tốn bộ nhớ nhiều                          | O(b^d)                | O(b^d)                 |
+| **IDA\***  | DFS với giới hạn f(n) tăng dần | Tối ưu, tiết kiệm bộ nhớ             | Phải lặp lại, hiệu quả phụ thuộc vào h(n) | O(b^d)                | O(d)                   |
+| **Greedy** | Ưu tiên theo h(n) nhỏ nhất     | Rất nhanh nếu heuristic đúng hướng   | Không đảm bảo tối ưu, dễ bị "lạc hướng"   | O(b^d)                | O(b^d)                 |
+
 
 #### **Nhận xét**:
 A* là một trong những thuật toán mạnh mẽ nhất trong các chiến lược tìm kiếm có sử dụng thông tin heuristic. Nhờ việc kết hợp chi phí thực (g(n)) và chi phí ước lượng (h(n)), A* có khả năng định hướng quá trình tìm kiếm theo hướng tối ưu nhất, giảm số lượng trạng thái cần duyệt so với các thuật toán không heuristic như BFS hoặc UCS. Tuy nhiên, điểm yếu lớn nhất của A* là mức tiêu thụ bộ nhớ rất cao, do cần lưu toàn bộ trạng thái mở rộng và sắp xếp chúng trong hàng đợi ưu tiên.
@@ -163,6 +173,7 @@ Trong nhóm thuật toán tìm kiếm có ràng buộc, mục tiêu chính là t
 * **Backtracking with Forward Checking:** Là một cải tiến của phương pháp Backtracking truyền thống, thường được áp dụng trong bài toán ràng buộc (Constraint Satisfaction Problems - CSP). Thuật toán này không chỉ kiểm tra ràng buộc tại thời điểm gán biến, mà còn dự đoán trước xem việc gán đó có khiến cho các biến chưa gán còn lại bị ràng buộc đến mức không còn giá trị hợp lệ nào để chọn hay không. Nếu có, thuật toán sẽ quay lui ngay lập tức, nhờ đó tiết kiệm thời gian tìm kiếm.
   
 * Minh họa cho thuật toán:
+
 `Backtracking`
 ![Backtracking](https://github.com/user-attachments/assets/2d72723e-1054-4f2d-9e27-46488f632c32)
 
@@ -183,9 +194,9 @@ Mặc dù Backtracking không phải là thuật toán tối ưu cho mọi bài 
 
 ### **Nhóm thuật toán tìm kiếm trong môi trường không xác định**
 
-Trong một số bài toán, không gian tìm kiếm không đơn thuần là cây hoặc đồ thị với các lựa chọn đơn lẻ *OR-node*, mà còn chứa những tình huống mà để đạt được một mục tiêu, cần đồng thời thỏa mãn nhiều điều kiện con – đây được gọi là *AND-node*. Đặc điểm này khiến bài toán trở nên phức tạp hơn, thường xuất hiện trong các hệ thống phân rã mục tiêu, lập kế hoạch tự động, hoặc trò chơi nhiều giai đoạn. AND/OR Search là chiến lược mở rộng của tìm kiếm truyền thống, cho phép xử lý các cấu trúc phân rẽ yêu cầu nhiều nhánh con được giải quyết song song.
+Trong một số bài toán, không gian tìm kiếm không chỉ đơn thuần là cây hay đồ thị với các lựa chọn tách biệt (OR-node), mà còn tồn tại những tình huống đòi hỏi phải đồng thời thỏa mãn nhiều điều kiện con để đạt được mục tiêu – đây chính là đặc trưng của AND-node. Để xử lý hiệu quả những cấu trúc phức tạp này, người ta sử dụng AND/OR Search – một chiến lược mở rộng của tìm kiếm truyền thống, cho phép biểu diễn linh hoạt cả các tình huống lựa chọn (OR) và kết hợp (AND).
 
-Trong môi trường như vậy, một nút AND yêu cầu tất cả các trạng thái con của nó đều phải có lời giải để coi là hoàn thành, trong khi một nút OR chỉ cầnnmột trong các trạng thái con dẫn đến thành công là đủ. Do đó, việc xây dựng lời giải trong AND/OR Search đòi hỏi phân tích cấu trúc bài toán một cách logic và hệ thống hơn, thường kèm theo kỹ thuật quay lui có ràng buộc tương tự Backtracking hoặc sử dụng heuristic trong các phiên bản nâng cao.
+Sự phức tạp càng tăng khi tác nhân hoạt động trong môi trường không đầy đủ thông tin – ví dụ như trong Sensorless Search, nơi tác nhân không biết chính xác trạng thái hiện tại, hoặc trong Partial Observation, nơi chỉ có thể quan sát một phần của trạng thái. Trong các môi trường này, tác nhân không chỉ cần lên kế hoạch trong một không gian trạng thái đầy đủ mà còn phải duy trì và cập nhật một tập hợp trạng thái niềm tin (belief state)
 
 #### **Thuật toán được sử dụng**:
 
@@ -193,9 +204,23 @@ Trong môi trường như vậy, một nút AND yêu cầu tất cả các trạ
 
   * *Độ phức tạp thời gian*: Phụ thuộc vào cấu trúc cây AND/OR, trong trường hợp xấu nhất vẫn là O(b^d) nhưng thường nhỏ hơn do loại trừ được nhiều nhánh từ sớm.
   * *Độ phức tạp không gian*: O(d).
+
+* **Sensorless Search:** Là dạng tìm kiếm trong môi trường không có thông tin cảm biến, tức là tác nhân không thể quan sát trạng thái hiện tại một cách chính xác. Thay vào đó, nó giữ một tập hợp các trạng thái có thể và thực hiện các hành động nhằm giảm dần tập hợp này, với mục tiêu cuối cùng là thu hẹp về một trạng thái duy nhất hoặc đạt được mục tiêu bất kể trạng thái ban đầu chính xác là gì.
+    * *Mục tiêu*: Tìm chuỗi hành động sao cho dù bắt đầu ở trạng thái nào trong tập hợp ban đầu, tác nhân vẫn đảm bảo đạt được mục tiêu.
+
+* **Partial Observation**: Tác nhân có một phần thông tin về trạng thái hiện tại, thường thông qua cảm biến hạn chế hoặc mập mờ. Tác nhân cần sử dụng suy luận logic và thông tin lịch sử để cập nhật niềm tin về trạng thái thực sự của thế giới.
+    *Mục tiêu*: Duy trì một mô hình belief state (tập hợp hoặc phân phối xác suất các trạng thái có thể xảy ra).
  
 * Minh họa cho thuật toán:
-  ![And-OR](https://github.com/user-attachments/assets/1ccf2712-0b04-4f50-b15f-0b69b238e3a6)
+
+`And Or Search`
+![And-OR](https://github.com/user-attachments/assets/1ccf2712-0b04-4f50-b15f-0b69b238e3a6)
+
+`Partial Observation`
+![IMG_3689](https://github.com/user-attachments/assets/1c1ad575-62c5-4328-acca-26473a4880af)
+
+`Sensorless`
+![IMG_3688](https://github.com/user-attachments/assets/c1b14ce2-d364-43ce-9d24-76f944b83da9)
 
 
 #### **Tóm tắt thuật toán:**
@@ -243,6 +268,7 @@ Khác với nhóm không có thông tin, tìm kiếm cục bộ sử dụng *heu
   * *Độ phức tạp không gian:* O(p)
  
 * Minh họa cho các thuật toán:
+
 `Beam Search`
 ![Beam Search](https://github.com/user-attachments/assets/9638767b-2f47-4a67-8aa4-85de14ea93bd)
 

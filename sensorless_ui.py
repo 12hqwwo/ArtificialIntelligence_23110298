@@ -551,13 +551,13 @@ class Ui_Sensorless(object):
 
     def retranslateUi(self, Sensorless):
         _translate = QtCore.QCoreApplication.translate
-        Sensorless.setWindowTitle(_translate("Sensorless", "Form"))
+        Sensorless.setWindowTitle(_translate("Sensorless", "Sensorless"))
         self.beliefState.setTitle(_translate("Sensorless", "Belief State"))
         self.label_path.setText(_translate("Sensorless", "Đường đi"))
-        self.randomButton.setText(_translate("Sensorless", "Random"))
+        self.randomButton.setText(_translate("Sensorless", "Ngẫu nhiên"))
         self.solveButton.setText(_translate("Sensorless", "Giải"))
         self.exitButton.setText(_translate("Sensorless", "Thoát"))
-        self.resetButton.setText(_translate("Sensorless", "Reset"))
+        self.resetButton.setText(_translate("Sensorless", "Thiết lập lại"))
         self.label_goal.setText(_translate("Sensorless", "Mục tiêu"))
         self.label_35.setText(_translate("Sensorless", "1"))
         self.label_36.setText(_translate("Sensorless", "2"))

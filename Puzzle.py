@@ -213,21 +213,14 @@ class EightPuzzleApp(QMainWindow):
 
         self.initial_state = [
             [2, 6, 5],
-            [8, 0, 7],
+            [0, 8, 7],
             [4, 3, 1]
         ]    
 
         self.grid_labels = {}
         for i in range(3):
             for j in range(3):
-                # Tên label dùng định dạng theo vị trí, ví dụ "label_2" với giá trị 2, "label_empty" với giá trị 0
-                # Nhưng dễ nhất là bạn lưu label theo tọa độ i,j của ô:
-                label_name = f"label_{i}_{j}"  # Bạn cần đổi tên label trong UI theo chuẩn này, hoặc map lại
-                # Nếu UI chưa có label với tên đó, bạn phải map theo tên hiện tại:
-                # Ví dụ label tên theo giá trị, thì map ngược:
-                # label_value = self.initial_state[i][j]
-                # label_name = f"label_{label_value}" if label_value != 0 else "label_empty"
-                # Nhưng với update_grid, bạn muốn cập nhật text trên label theo vị trí i,j, nên tốt nhất đặt label theo tên i_j
+                label_name = f"label_{i}_{j}" 
                 label = getattr(self.ui, label_name, None)
                 if label:
                     self.grid_labels[(i, j)] = label
@@ -276,12 +269,14 @@ class EightPuzzleApp(QMainWindow):
                     label.move(new_x, new_y)
 
     def solve_puzzle(self):
+
         QMessageBox.information(self, "Chú ý", "Đang tính toán tiến trình giải.")
         self.selected_algorithm = self.ui.algorithmComboBox.currentText()
 
         if self.selected_algorithm == "UCS":
             solution = ucs(self.initial_state)
         elif self.selected_algorithm == "BFS":
+            print("Start state:", self.initial_state)
             solution = bfs_solve(self.initial_state)
         elif self.selected_algorithm == "IDS":
             solution = ids(self.initial_state)
@@ -335,7 +330,12 @@ class EightPuzzleApp(QMainWindow):
         if self.solution_index < len(self.solution):
             self.initial_state = self.solution[self.solution_index]
             self.update_grid(self.initial_state)
-            self.ui.listWidget.addItem(str(self.initial_state))
+
+            # Ghi rõ "Bước i:" và in từng dòng của trạng thái
+            self.ui.listWidget.addItem(f"Bước {self.solution_index}:")
+            for row in self.initial_state:
+                self.ui.listWidget.addItem(str(row))
+            self.ui.listWidget.addItem("")  # Dòng trống phân cách
             h_n = manhattan_distance(self.initial_state)
             g_n = self.solution_index
             f_n = h_n + g_n
@@ -361,7 +361,7 @@ class EightPuzzleApp(QMainWindow):
     def reset_puzzle(self):  
         self.initial_state = [
             [2, 6, 5],
-            [8, 0, 7],
+            [8, 7, 0],
             [4, 3, 1]
         ]  
         self.update_grid(self.initial_state)

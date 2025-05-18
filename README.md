@@ -23,7 +23,6 @@
 - [Kết luận](#kết-luận)
 
 
-
 ## **GIỚI THIỆU ĐỀ TÀI**
 
 Tìm kiếm là một trong những kỹ thuật cốt lõi của trí tuệ nhân tạo, đóng vai trò quan trọng trong việc giải quyết các bài toán ra quyết định, lập kế hoạch, và định tuyến trong không gian trạng thái lớn. Trong lĩnh vực này, các thuật toán tìm kiếm được chia thành nhiều loại, từ những phương pháp không sử dụng thông tin tri thức (heuristic) như tìm kiếm theo chiều sâu, chiều rộng, đến những thuật toán tiên tiến hơn như A* có khả năng khai thác tri thức để tăng hiệu quả tìm kiếm.

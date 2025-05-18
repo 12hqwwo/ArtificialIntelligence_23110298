@@ -67,6 +67,21 @@ Trò chơi 8 ô thực chất là một ma trận 3x3 với các số từ 1-8 (
 
 Thuật toán sẽ bắt đầu từ trạng thái bắt đầu và lần lượt mở rộng các trạng thái mới thông qua các hành động hợp lệ – cụ thể là việc di chuyển ô trống sang trái, phải, lên hoặc xuống (nếu còn nằm trong giới hạn ma trận). Trong phạm vi này, các thuật toán không sử dụng bất kỳ thông tin heuristic nào liên quan đến khoảng cách đến trạng thái mục tiêu. Thay vào đó, việc lựa chọn trạng thái kế tiếp phụ thuộc vào chiến lược duyệt cây hoặc chi phí hành động đã thực hiện.
 
+ - **Thành phần chính:**
+    * Trạng thái:	Ma trận 3x3 biểu diễn 8-puzzle.
+    * Trạng thái đầu:	start_state
+    * Trạng thái đích:	goal_state
+    * Hành động:	get_states() – di chuyển ô trống theo 4 hướng
+    * Hàm chi phí:	UCS dùng chi phí thực tế (g), các thuật toán còn lại dùng chi phí đơn vị (1 bước = 1).
+    * Chiến lược mở rộng
+        - BFS: theo hàng đợi FIFO
+        - DFS: theo ngăn xếp LIFO
+        - IDS: duyệt sâu tăng dần
+        - UCS: hàng đợi ưu tiên theo chi phí
+    
+- **Solution:**
+    Trả về danh sách các trạng thái từ start_state đến goal_state.
+
 #### **Các thuật toán được sử dụng**:
 * **Breadth-First Search (BFS)**: Duyệt theo mức độ, mở rộng tất cả các nút ở một độ sâu trước khi đi sâu hơn. Ưu điểm lớn nhất là đảm bảo tìm được lời giải ngắn nhất về số bước đi. Tuy nhiên, nhược điểm là tốn nhiều bộ nhớ do cần lưu trữ toàn bộ nút ở mỗi mức.
     * *Độ phức tạp thời gian và không gian:* O(b^d), trong đó b là bậc phân nhánh (branching factor) và d là độ sâu của lời giải.
@@ -119,6 +134,19 @@ Tóm lại, lựa chọn thuật toán phù hợp phụ thuộc vào ưu tiên g
 
 Trong môi trường có thông tin, quá trình tìm kiếm được hỗ trợ bởi các hàm heuristic – các hàm đánh giá ước lượng chi phí từ trạng thái hiện tại đến trạng thái mục tiêu. Nhờ đó, thuật toán có thể ưu tiên mở rộng những trạng thái "hứa hẹn" hơn, tức là có khả năng dẫn đến lời giải nhanh hơn hoặc với chi phí thấp hơn. Việc lựa chọn trạng thái kế tiếp không còn chỉ phụ thuộc vào thứ tự duyệt hay chi phí đã đi, mà còn dựa trên ước lượng thông minh về khoảng cách còn lại đến đích. Điều này giúp cải thiện hiệu suất và giảm đáng kể số trạng thái cần duyệt so với các chiến lược tìm kiếm mù.
 
+ - **Thành phần chính:**
+    * Trạng thái:	8-puzzle
+    * Hành động:	get_states()
+    * Heuristic:	manhattan_distance()
+    * Hàm đánh giá:
+        - A*: f(n) = g(n) + h(n)
+        - IDA*: sử dụng f tương tự
+        - Greedy: chỉ dùng h(n)
+    * Trạng thái mục tiêu:	goal_state
+        
+- **Solution:**
+    Trả về đường đi tối ưu hoặc gần tối ưu.
+
 #### **Các thuật toán được sử dụng**:
 * **A**: A* là thuật toán tìm kiếm sử dụng thông tin heuristic để dẫn dắt quá trình mở rộng trạng thái. Nó tính toán tổng chi phí f(n) = g(n) + h(n), trong đó g(n) là chi phí từ trạng thái ban đầu đến hiện tại, và h(n) là ước lượng chi phí còn lại đến mục tiêu (heuristic). A* đảm bảo tìm được lời giải tối ưu nếu h(n) là hàm heuristic chấp nhận được (không đánh giá thấp chi phí thực). Ưu điểm của thuật toán là tìm được lời giải tối ưu, ít duyệt trạng thái dư thừa nếu heuristic tốt.
     * *Độ phức tạp thời gian*: O(b^d) trong trường hợp xấu.
@@ -165,6 +193,17 @@ Tóm lại, nếu bộ nhớ không phải là vấn đề và heuristic đượ
 Trong nhóm thuật toán tìm kiếm có ràng buộc, mục tiêu chính là tìm lời giải thỏa mãn một tập hợp các điều kiện nhất định bằng cách duyệt qua không gian trạng thái theo hướng có thể quay lui khi phát hiện trạng thái không hợp lệ. Phương pháp này rất phổ biến trong các bài toán tổ hợp hoặc sắp xếp, nơi cần loại bỏ sớm các nhánh sai để giảm tải không gian tìm kiếm.
 
 Đối với bài toán 8 ô, Backtracking có thể được áp dụng như một chiến lược duyệt sâu kết hợp với điều kiện kiểm tra trạng thái để tránh lặp vô hạn. Phương pháp này xây dựng lời giải bằng cách thử từng nước đi một cách tuần tự. Nếu tại một trạng thái không thể tiếp tục hợp lệ, thuật toán sẽ quay lui (backtrack) về trạng thái trước đó để thử hướng đi khác.
+ - **Thành phần chính:**
+    * Trạng thái:	8-puzzle
+    * Hàm ràng buộc:	Không trùng trạng thái, độ sâu giới hạn, forward checking (manhattan_distance + depth <= max_depth)
+    * Hành động:	apply_action()
+    * Chiến lược:
+        - Đệ quy quay lui (backtracking)
+        - Forward checking
+        - min-conflicts
+        
+- **Solution:**
+    Dãy trạng thái thoả mãn ràng buộc đến goal_state
 
 #### **Thuật toán được sử dụng**:
 * **Backtracking:** Phương pháp Backtracking là một chiến lược tìm kiếm theo chiều sâu, trong đó thuật toán sẽ quay lui mỗi khi gặp trạng thái không hợp lệ hoặc không còn khả năng mở rộng. Một đặc điểm quan trọng của Backtracking là việc áp dụng các điều kiện ràng buộc để loại bỏ sớm những nhánh không khả thi, chẳng hạn như không cho phép lặp lại các trạng thái đã duyệt. Điều này giúp giảm thiểu không gian tìm kiếm đáng kể.
@@ -198,6 +237,15 @@ Mặc dù Backtracking không phải là thuật toán tối ưu cho mọi bài 
 Trong một số bài toán, không gian tìm kiếm không chỉ đơn thuần là cây hay đồ thị với các lựa chọn tách biệt (OR-node), mà còn tồn tại những tình huống đòi hỏi phải đồng thời thỏa mãn nhiều điều kiện con để đạt được mục tiêu – đây chính là đặc trưng của AND-node. Để xử lý hiệu quả những cấu trúc phức tạp này, người ta sử dụng AND/OR Search – một chiến lược mở rộng của tìm kiếm truyền thống, cho phép biểu diễn linh hoạt cả các tình huống lựa chọn (OR) và kết hợp (AND).
 
 Sự phức tạp càng tăng khi tác nhân hoạt động trong môi trường không đầy đủ thông tin – ví dụ như trong Sensorless Search, nơi tác nhân không biết chính xác trạng thái hiện tại, hoặc trong Partial Observation, nơi chỉ có thể quan sát một phần của trạng thái. Trong các môi trường này, tác nhân không chỉ cần lên kế hoạch trong một không gian trạng thái đầy đủ mà còn phải duy trì và cập nhật một tập hợp trạng thái niềm tin (belief state)
+
+ - **Thành phần chính:**
+    * Trạng thái:	8-puzzle
+    * Hành động	and_or_moves (up, down, left, right)
+    * Cấu trúc AND/OR:	Gọi đệ quy theo nhiều nhánh và điều kiện
+    * Giới hạn độ sâu:	max_depth
+        
+- **Solution:**
+    Một plan (dạng cây nhánh AND/OR) đưa tới goal_state, hoặc None nếu không đạt.
 
 #### **Thuật toán được sử dụng**:
 
@@ -241,6 +289,16 @@ Thuật toán AND/OR Search phù hợp với những bài toán có cấu trúc 
 Tìm kiếm cục bộ là nhóm thuật toán thường được sử dụng khi không gian trạng thái quá lớn để có thể duyệt toàn bộ. Thay vì duyệt từ trạng thái gốc qua các bước trung gian cho đến trạng thái mục tiêu như các phương pháp tìm kiếm truyền thống, thuật toán tìm kiếm cục bộ chỉ duy trì *một (hoặc vài) trạng thái hiện tại*, và cải tiến nó thông qua việc tìm trạng thái "lân cận" tốt hơn. Nhóm thuật toán này thường được áp dụng cho các bài toán *tối ưu hóa* hoặc *bài toán không có cấu trúc rõ ràng về đường đi*, như bài toán tối ưu hàm, bài toán người du lịch, hoặc sắp xếp lịch trình.
 
 Khác với nhóm không có thông tin, tìm kiếm cục bộ sử dụng *heuristic* để đánh giá mức độ tốt của trạng thái hiện tại nhằm hướng dẫn quá trình tìm kiếm đến lời giải tối ưu.
+ - **Thành phần chính:**
+    * Trạng thái:	8-puzzle
+    * Hàm đánh giá:	manhattan_distance()
+    * Chiến lược:
+        - Leo đồi (tăng dần điểm)
+        - Tìm điểm tối ưu cục bộ
+        - Giải pháp quần thể (GA)
+            
+- **Solution:**
+    Trả về đường đi (chuỗi trạng thái) từ start_state đến goal_state, nhưng có thể không tối ưu toàn cục.
 
 #### **Các thuật toán được sử dụng**:
 
@@ -313,6 +371,16 @@ Tìm kiếm cục bộ là công cụ mạnh mẽ khi không gian tìm kiếm qu
 
 Trong trò chơi 8 ô, Q-learning có thể áp dụng bằng cách ánh xạ mỗi trạng thái thành một giá trị Q cho từng hành động có thể thực hiện. Thông qua quá trình thử-sai, sẽ cập nhật bảng Q để học ra chiến lược tốt nhất nhằm đạt đến trạng thái đích.
 
+ - **Thành phần chính:**
+    * Trạng thái:	8-puzzle
+    * Hành động: 	actions_q = ['U','D','L','R']
+    * Hàm giá trị:	Bảng Q: Q[state][action]
+    * Chiến lược học	Q-Learning: cập nhật theo công thức Q
+    * Chính sách chọn hành động:	choose_action() – theo epsilon-greedy
+            
+- **Solution:**
+    Sau khi học (train_q_learning()), lời giải là đường đi tốt nhất từ trạng thái ban đầu đến goal_state_q, được tạo bằng hàm play().
+
 
 #### **Thuật toán Q-Learning (giản lược):**
 
@@ -332,7 +400,7 @@ Trong trò chơi 8 ô, Q-learning có thể áp dụng bằng cách ánh xạ m�
    * γ: hệ số chiết khấu (discount factor)
 5. Cập nhật trạng thái hiện tại thành `s'`, lặp lại đến khi kết thúc.
 
-
+* Minh họa thuật toán: https://colab.research.google.com/drive/1CCXaHVYVbVWP7MnD3VzhaVAcgIz5_1zc?usp=sharing
 
 #### **Tóm tắt thuật toán:**
 
